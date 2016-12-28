@@ -1,0 +1,159 @@
+INTERLIS 2.3;
+
+MODEL SO_Hoheitsgrenzen_20160420 (de)
+AT "http://www.geo.so.ch"
+VERSION "2016-04-20"  =
+  IMPORTS GeometryCHLV03_V1,CHAdminCodes_V1;
+
+  DOMAIN
+
+    Schriftgroesse = (
+      gross,
+      mittel,
+      klein
+    );
+
+  CLASS Grenze (ABSTRACT) =
+    Geometrie : MANDATORY GeometryCHLV03_V1.Surface;
+  END Grenze;
+
+  CLASS Pos (ABSTRACT) =
+    Pos : MANDATORY GeometryCHLV03_V1.Coord2;
+    Ori : GeometryCHLV03_V1.Orientation;
+    HAli : MANDATORY INTERLIS.HALIGNMENT;
+    VAli : MANDATORY INTERLIS.VALIGNMENT;
+  END Pos;
+
+  TOPIC Kantonsgrenzen =
+    OID AS INTERLIS.UUIDOID;
+
+    CLASS Kanton =
+      Name : MANDATORY TEXT*255;
+      Kantonskuerzel : MANDATORY CHAdminCodes_V1.CHCantonCode;
+      UNIQUE Name;
+      UNIQUE Kantonskuerzel;
+    END Kanton;
+
+    CLASS Kantonsgrenze
+    EXTENDS SO_Hoheitsgrenzen_20160420.Grenze =
+    END Kantonsgrenze;
+
+    CLASS Kantonsgrenze_generalisiert
+    EXTENDS SO_Hoheitsgrenzen_20160420.Grenze =
+    END Kantonsgrenze_generalisiert;
+
+    CLASS Kantonsname_Pos
+    EXTENDS SO_Hoheitsgrenzen_20160420.Pos =
+      Name : MANDATORY TEXT*255;
+    END Kantonsname_Pos;
+
+    ASSOCIATION Kantonsgrenze_generalisiert_Kanton =
+      Grenze_generalisiert_Geometrie -- {1..*} Kantonsgrenze_generalisiert;
+      Kanton -<#> {1} Kanton;
+    END Kantonsgrenze_generalisiert_Kanton;
+
+    ASSOCIATION Kantonsgrenze_Kanton =
+      Grenze_Geometrie -- {1..*} Kantonsgrenze;
+      Kanton -<#> {1} Kanton;
+    END Kantonsgrenze_Kanton;
+
+    ASSOCIATION Kantonsname_Pos_Kanton =
+      Pos -- {0..*} Kantonsname_Pos;
+      Element -<#> {1} Kanton;
+    END Kantonsname_Pos_Kanton;
+
+  END Kantonsgrenzen;
+
+  TOPIC Bezirksgrenzen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_Hoheitsgrenzen_20160420.Kantonsgrenzen;
+
+    CLASS Bezirk =
+      Name : MANDATORY TEXT*255;
+      Bezirksnummer : 1 .. 9999;
+      UNIQUE Name;
+      UNIQUE Bezirksnummer;
+    END Bezirk;
+
+    CLASS Bezirksgrenze
+    EXTENDS SO_Hoheitsgrenzen_20160420.Grenze =
+    END Bezirksgrenze;
+
+    CLASS Bezirksgrenze_generalisiert
+    EXTENDS SO_Hoheitsgrenzen_20160420.Grenze =
+    END Bezirksgrenze_generalisiert;
+
+    CLASS Bezirksname_Pos
+    EXTENDS SO_Hoheitsgrenzen_20160420.Pos =
+      Name : MANDATORY TEXT*255;
+    END Bezirksname_Pos;
+
+    ASSOCIATION Bezirk_Kanton =
+      Bezirk -- {1..*} Bezirk;
+      Kanton (EXTERNAL) -- {1} SO_Hoheitsgrenzen_20160420.Kantonsgrenzen.Kanton;
+    END Bezirk_Kanton;
+
+    ASSOCIATION Bezirksgrenze_Bezirk =
+      Bezirk -<#> {1} Bezirk;
+      Grenze_Geometrie -- {1..*} Bezirksgrenze;
+    END Bezirksgrenze_Bezirk;
+
+    ASSOCIATION Bezirksgrenze_generalisiert_Bezirk =
+      Grenze_generalisiert_Geometrie -- {1..*} Bezirksgrenze_generalisiert;
+      Bezirk -<#> {1} Bezirk;
+    END Bezirksgrenze_generalisiert_Bezirk;
+
+    ASSOCIATION Bezirksname_Pos_Bezirk =
+      Pos -- {0..*} Bezirksname_Pos;
+      Element -<#> {1} Bezirk;
+    END Bezirksname_Pos_Bezirk;
+
+  END Bezirksgrenzen;
+
+  TOPIC Gemeindegrenzen =
+    OID AS INTERLIS.UUIDOID;
+    DEPENDS ON SO_Hoheitsgrenzen_20160420.Bezirksgrenzen;
+
+    CLASS Gemeinde =
+      Name : MANDATORY TEXT*255;
+      BFS_Gemeindenummer : MANDATORY CHAdminCodes_V1.CHMunicipalityCode;
+      UNIQUE Name;
+      UNIQUE BFS_Gemeindenummer;
+    END Gemeinde;
+
+    CLASS Gemeindegrenze
+    EXTENDS SO_Hoheitsgrenzen_20160420.Grenze =
+    END Gemeindegrenze;
+
+    CLASS Gemeindegrenze_generalisiert
+    EXTENDS SO_Hoheitsgrenzen_20160420.Grenze =
+    END Gemeindegrenze_generalisiert;
+
+    CLASS Gemeindename_Pos
+    EXTENDS SO_Hoheitsgrenzen_20160420.Pos =
+      Name : TEXT*255;
+    END Gemeindename_Pos;
+
+    ASSOCIATION Gemeinde_Bezirk =
+      Gemeinde -- {1..*} Gemeinde;
+      Bezirk (EXTERNAL) -- {1} SO_Hoheitsgrenzen_20160420.Bezirksgrenzen.Bezirk;
+    END Gemeinde_Bezirk;
+
+    ASSOCIATION Gemeindegrenze_Gemeinde =
+      Grenze_Geometrie -- {1..*} Gemeindegrenze;
+      Gemeinde -<#> {1} Gemeinde;
+    END Gemeindegrenze_Gemeinde;
+
+    ASSOCIATION Gemeindegrenze_generalisiert_Gemeinde =
+      Gemeinde -<#> {1} Gemeinde;
+      Grenze_generalisiert_Gemeinde -- {1..*} Gemeindegrenze_generalisiert;
+    END Gemeindegrenze_generalisiert_Gemeinde;
+
+    ASSOCIATION Gemeindename_Pos_Gemeinde =
+      Pos -- {0..*} Gemeindename_Pos;
+      Element -<#> {1} Gemeinde;
+    END Gemeindename_Pos_Gemeinde;
+
+  END Gemeindegrenzen;
+
+END SO_Hoheitsgrenzen_20160420.

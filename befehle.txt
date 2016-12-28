@@ -1,0 +1,25 @@
+# UUID
+# Im Modell ist OID AS UUID. 
+# -> Notfalls muss das Modell angepasst werden, falls Extension nicht installiert/installierbar.
+CREATE EXTENSION "uuid-ossp";
+
+# Schema-Import (-> kein FK)
+java -jar /home/stefan/Apps/ili2pg-3.0.3/ili2pg.jar --dbhost localhost --dbport 5432 --dbdatabase xanadu2 --dbusr stefan --dbpwd ziegler12 --defaultSrsAuth EPSG --defaultSrsCode  21781 --createGeomIdx --createEnumTabs --strokeArcs --createFkIdx --createUnique --nameByTopic --dbschema av_hoheitsgrenzen --modeldir "http://models.geo.admin.ch;." --models SO_Hoheitsgrenzen_20160420 --schemaimport
+
+
+# Import GPKG (Grenzen generalisiert)
+ogr2ogr -f "PostgreSQL" PG:"host=localhost user=stefan password=ziegler12 dbname=xanadu2"  daten/hoheitsgrenzen/gemgre_gen.gpkg
+ogr2ogr -f "PostgreSQL" PG:"host=localhost user=stefan password=ziegler12 dbname=xanadu2"  daten/hoheitsgrenzen/bezirkgre_gen.gpkg
+ogr2ogr -f "PostgreSQL" PG:"host=localhost user=stefan password=ziegler12 dbname=xanadu2"  daten/hoheitsgrenzen/kantonsgre_gen.gpkg
+
+
+# mapping
+file://sql/kanton.sql
+file://sql/bezirke.sql
+file://sql/gemeinden.sql
+
+# Export der Daten
+java -jar /home/stefan/Apps/ili2pg-3.0.3/ili2pg.jar --dbhost localhost --dbport 5432 --dbdatabase xanadu2 --dbusr stefan --dbpwd ziegler12 --dbschema av_hoheitsgrenzen --modeldir "http://models.geo.admin.ch;." --models SO_Hoheitsgrenzen_20160420 --export SO_Hoheitsgrenzen.xtf
+
+# XTF formatieren
+xmllint --format SO_Hoheitsgrenzen.xtf -o SO_Hoheitsgrenzen.xtf
